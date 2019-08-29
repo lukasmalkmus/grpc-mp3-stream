@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package lukasmalkmus.bytestream;
+
+option go_package = "proto";
+
+// The Byte Stream API enables a client to read a stream of bytes from a
+// resource. Resources have names, and these names are supplied in the API calls
+// below to identify the resource that is being read from or written to.
+service ByteStream {
+  // `Read()` is used to retrieve the contents of a resource as a sequence
+  // of bytes. The bytes are returned in a sequence of responses, and the
+  // responses are delivered as the results of a server-side streaming RPC.
+  rpc Read(ReadRequest) returns (stream ReadResponse);
+}
+
+// Request object for ByteStream.Read.
+message ReadRequest {
+  // The name of the resource to read.
+  string resource_name = 1;
+}
+
+// Response object for ByteStream.Read.
+message ReadResponse {
+  // A portion of the data for the resource. The service **may** leave `data`
+  // empty for any given `ReadResponse`. This enables the service to inform the
+  // client that the request is still live while it is running an operation to
+  // generate more data.
+  bytes data = 1;
+}
