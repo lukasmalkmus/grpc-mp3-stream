@@ -12,12 +12,15 @@ import (
 	"github.com/lukasmalkmus/stream/bytestream"
 )
 
-const resourceName = "song.mp3"
+const (
+	remoteAddr   = "localhost:10000"
+	resourceName = "song.mp3"
+)
 
 func main() {
-	conn, err := grpc.Dial("localhost:10000", grpc.WithInsecure())
+	conn, err := grpc.Dial(remoteAddr, grpc.WithInsecure())
 	if err != nil {
-		log.Printf("Dial(%q): %v", "localhost:10000", err)
+		log.Printf("Dial(%q): %v", remoteAddr, err)
 		return
 	}
 

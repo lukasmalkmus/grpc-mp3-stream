@@ -13,9 +13,9 @@ import (
 const (
 	// MaxBufSize is the maximum buffer size (in bytes) received in a read
 	// chunk.
-	MaxBufSize  = 64 * 1024
-	backoffBase = 10 * time.Millisecond
-	backoffMax  = 1 * time.Second
+	MaxBufSize  = 1024 * 64 // 64KiB
+	backoffBase = time.Millisecond * 10
+	backoffMax  = time.Second * 1
 	maxTries    = 5
 )
 
@@ -42,6 +42,25 @@ type Reader struct {
 	resourceName string
 	err          error
 	buf          []byte
+}
+
+// NewReader creates a new Reader to read a resource.
+func (c *Client) NewReader(ctx context.Context, resourceName string) (*Reader, error) {
+	// readClient is set up for Read(). ReadAt() will copy needed fields into
+	// its reentrantReader.
+	readClient, err := c.client.Read(ctx, &pb.ReadRequest{
+		ResourceName: resourceName,
+	}, c.options...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Reader{
+		ctx:          ctx,
+		c:            c,
+		resourceName: resourceName,
+		readClient:   readClient,
+	}, nil
 }
 
 // ResourceName gets the resource name this Reader is reading.
@@ -102,23 +121,4 @@ func (r *Reader) Close() error {
 	err := r.readClient.CloseSend()
 	r.readClient = nil
 	return err
-}
-
-// NewReader creates a new Reader to read a resource.
-func (c *Client) NewReader(ctx context.Context, resourceName string) (*Reader, error) {
-	// readClient is set up for Read(). ReadAt() will copy needed fields into
-	// its reentrantReader.
-	readClient, err := c.client.Read(ctx, &pb.ReadRequest{
-		ResourceName: resourceName,
-	}, c.options...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Reader{
-		ctx:          ctx,
-		c:            c,
-		resourceName: resourceName,
-		readClient:   readClient,
-	}, nil
 }
